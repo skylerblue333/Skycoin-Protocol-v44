@@ -1,68 +1,64 @@
 # Skycoin Protocol V44 — Architecture
 
-## Scope
+## Verification-first boundary
 
-This repository is a protocol implementation boundary. The currently verified protocol primitive is transaction validation, canonical serialization, and deterministic transaction identification. It is **not** a complete consensus or network implementation.
+This repository separates the currently verified transaction primitives from the larger SkyCoin ecosystem. The executable protocol layer currently provides transaction validation, deterministic canonical serialization, SHA-256 transaction IDs, binary Merkle roots/proofs, deterministic fuzzing, and CI verification.
 
-## Transaction flow
+It does **not** claim to be a complete consensus or production mainnet implementation.
+
+## Transaction path
 
 ```text
-Client / Wallet
-      |
-      v
-Transaction input
-      |
-      v
+wallet / API command
+        |
+        v
+Transaction object
+        |
+        v
 validateTransaction()
-  |       |       |
-  |       |       +--> output/input conservation
-  |       +----------> positive values + required fields
-  +------------------> version + non-empty collections
-      |
-      v
-canonicalTransaction()
-      |
-      v
-SHA-256 transactionId()
-      |
-      +------> Wallet / Finance / API integration
+  |             |
+ invalid       valid
+  |             |
+ reject         v
+          canonicalTransaction()
+                |
+                v
+           SHA-256 ID
+                |
+                v
+          Merkle aggregation
+                |
+                v
+     protocol/network boundary
 ```
 
-## Invariants currently enforced
+## State invariants
 
 1. Protocol version is a positive integer.
 2. Transactions contain at least one input and output.
-3. Input and output amounts are strictly positive `bigint` values.
+3. Every input and output amount is strictly positive.
 4. Input owners and output addresses are required.
 5. Total outputs cannot exceed total inputs.
-6. The canonical representation converts `bigint` values to strings before hashing.
+6. Canonical serialization converts `bigint` amounts to decimal strings deterministically.
+7. Transaction IDs are SHA-256 hashes of canonical serialization.
+8. Merkle leaves must be valid 64-character hexadecimal transaction IDs.
 
-## Not yet implemented here
+## Deterministic fuzzing
 
-- consensus algorithm
-- block validation
-- signatures and key verification
-- nonce/replay protection
-- UTXO/state database
-- peer-to-peer networking
-- fork choice
-- finality
-- fee policy
-- production chain deployment
+`protocol/transaction.fuzz.test.ts` uses a deterministic xorshift32 generator so failures can be reproduced from the same seed. CI runs 100,000 generated cases by default and supports bounded larger runs through `FUZZ_ITERATIONS`.
 
-Those capabilities must not be inferred from the existence of the transaction primitive.
+## Institutional value surfaces
 
-## Consolidation strategy
+Potential product surfaces include protocol SDKs, wallet integrations, transaction validation services, indexers, audit tooling, developer APIs, testnet infrastructure, enterprise blockchain adapters, observability services, security assessments, and protocol engineering/support contracts. These are opportunities, not claims of current revenue or adoption.
 
-Treat `protocol/transaction.ts` as a candidate shared contract/primitive. Before merging it into the canonical SKYCOIN4444 workspace, compare it against existing wallet, finance, ledger, and public upstream implementations. Preserve the strongest compatible implementation and avoid maintaining duplicate transaction engines.
+## Strongest-source policy
+
+When incorporating external open-source infrastructure, prefer mature, actively maintained implementations and preserve license/attribution requirements. Consensus-critical behavior must be compatibility-tested and independently reviewed before promotion into a production network.
+
+## Remaining protocol gates
+
+Consensus, block validation, signatures, nonce/replay protection, persistent UTXO/state storage, peer-to-peer networking, fork choice, finality, fee policy, and production chain deployment remain separate engineering gates. They must not be inferred from the verified transaction layer.
 
 ## Verification
 
-Run:
-
-```bash
-pnpm test -- protocol/transaction.test.ts
-pnpm check
-```
-
-Full repository tests and production compatibility remain separate verification gates.
+GitHub Actions now runs a frozen pnpm install, TypeScript check, 100,000-iteration protocol fuzz/test suite, production build, and high-severity dependency audit.
