@@ -1,0 +1,60 @@
+name: Production Gate
+
+on:
+  push:
+    branches: [main, max-production-gate-20260823]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  application:
+    name: TypeScript + protocol + production build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Validate UCP manifest
+        run: node scripts/validate-ucp.mjs
+      - name: Type check
+        run: pnpm check
+      - name: Protocol and integration tests
+        run: pnpm test
+        env:
+          FUZZ_ITERATIONS: 100000
+      - name: Production build
+        run: pnpm build
+      - name: Dependency audit
+        run: pnpm audit --audit-level high
+
+  solidity:
+    name: Solidity compile + test + static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: Compile contracts
+        run: forge build --sizes
+      - name: Solidity tests
+        run: forge test -vvv
+      - name: Install Slither
+        run: python -m pip install --disable-pip-version-check slither-analyzer
+      - name: Static security analysis
+        run: slither contracts --exclude-dependencies
+
+  gate:
+    name: Production gate summary
+    needs: [application, solidity]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Production gate passed: application and Solidity verification jobs completed successfully. Deployment remains a separate, credentialed operation."
