@@ -21,7 +21,7 @@ This is an **ecosystem transaction primitive**, not a claim that it implements t
 
 ## Strongest-source strategy
 
-The canonical implementation will absorb verified protocol behavior from this repository and compare it with the public Skycoin reference implementation before promoting consensus-critical behavior. The upstream Skycoin repository contains mature transaction, wallet, API, and history-db implementations; those are reference material, not permission to copy incompatible code blindly. fileciteturn206file0turn206file3turn206file5turn206file8
+The canonical implementation will absorb verified protocol behavior from this repository and compare it with the public Skycoin reference implementation before promoting consensus-critical behavior. The upstream project contains mature transaction, wallet, API, and history-db implementations; these are reference material and must be compatibility- and license-reviewed before adoption.
 
 For third-party adoption, preserve license/attribution requirements, isolate adapters, and test compatibility before integration.
 
