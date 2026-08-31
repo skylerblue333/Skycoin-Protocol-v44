@@ -3,8 +3,10 @@ import type { TrpcContext } from "./_core/context";
 
 const { notifyOwner } = vi.hoisted(() => ({ notifyOwner: vi.fn().mockResolvedValue(true) }));
 vi.mock("./_core/notification", () => ({ notifyOwner }));
-// db is imported transitively by feature routers wired into appRouter
+// db is imported transitively by feature routers wired into appRouter. Preserve the
+// exported `db` symbol as a harmless test double while mocking helper functions.
 vi.mock("./db", () => ({
+  db: {},
   listProposals: vi.fn(), getProposal: vi.fn(), hasVoted: vi.fn(), castVote: vi.fn(),
   getStakingPower: vi.fn(), listUserStaking: vi.fn(), setStaking: vi.fn(), setProposalStatus: vi.fn(),
   listCampaigns: vi.fn(), addDonation: vi.fn(), markMilestoneNotified: vi.fn(), totalDonated: vi.fn(),

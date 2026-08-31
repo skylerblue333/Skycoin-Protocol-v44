@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ucp.dev/schemas/2026/profile.json",
+  "protocol_version": "2026-04-08",
+  "merchant": {
+    "name": "SKYCOIN4444 Protocol",
+    "domain": "skycoin4444.com",
+    "supported_transports": ["REST", "MCP", "A2A"]
+  },
+  "services": {
+    "gaming": "/api/ucp/gaming",
+    "shopping": "/api/ucp/shopping",
+    "identity": "/api/zkml/personhood",
+    "education": "/api/skyschool/sbt"
+  },
+  "capabilities": [
+    "dev.ucp.shopping.checkout",
+    "com.skycoin.agent.zkml-settlement",
+    "com.skyschool.credentials.soulbound",
+    "com.skygaming.provably.fair"
+  ]
+}
