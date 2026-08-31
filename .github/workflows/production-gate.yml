@@ -56,4 +56,6 @@ jobs:
     needs: [application, solidity]
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Production gate passed: application and Solidity verification jobs completed successfully. Deployment remains a separate, credentialed operation."
+      - name: Record verified gate status
+        run: |
+          echo "Production gate passed: application and Solidity verification jobs completed successfully. Deployment remains a separate, credentialed operation."
